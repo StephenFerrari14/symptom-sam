@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import Header from "./components/Header";
 import Container from "@material-ui/core/Container";
@@ -8,11 +8,29 @@ import FormControl from "@material-ui/core/FormControl";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import { getAllSymptoms, getConditionForSymptom } from "./services";
 
 function App() {
+  
+
+  const [symptoms, setSymptoms] = useState([]);
+
+  useEffect(() => {
+    getAllSymptoms().then(response => {
+      if (response.ok) {
+        response.json().then(function(data) {
+          if (data.symptoms) {
+            console.log(data);
+            setSymptoms(data.symptoms)
+          }
+        });
+      }
+    })
+  }, [])
+
   const defaultProps = {
-    options: [{ key: 1, value: "Iching" }],
-    getOptionLabel: (option) => option.value,
+    options: symptoms,
+    getOptionLabel: (option) => option.name,
   };
 
   const [selectedSymptom, setSelectedSymptom] = useState(null);
@@ -27,11 +45,20 @@ function App() {
   const submitSymptom = (e) => {
     e.preventDefault();
     setSymptomSubmitted(true);
-    setTimeout(() => {
-      setCondition({ id: 1, name: "rash" });
+    getConditionForSymptom({symptom: selectedSymptom.id}).then(response => {
+      console.log(response)
+      if (response.ok) {
+        response.json().then(function(data) {
+          if (data.condition) {
+            console.log(data.condition)
+            setCondition(data.condition)
+          }
+        });
+      }
+    }).finally(() => {
       setDiagnosisReceived(true);
       setSymptomSubmitted(false);
-    }, 1000);
+    });
   };
 
   const handleSymptomChange = (e, value) => {

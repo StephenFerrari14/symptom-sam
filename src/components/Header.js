@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Header = (props) => {
+const Header = () => {
   const classes = useStyles();
   return (
     <Fragment>
@@ -32,11 +32,6 @@ const Header = (props) => {
       </div>
     </Fragment>
   );
-};
-
-Header.propTypes = {
-  handleSignOut: PropTypes.func,
-  hasSignedIn: PropTypes.bool,
 };
 
 export default Header;

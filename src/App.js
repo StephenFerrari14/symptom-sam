@@ -4,29 +4,31 @@ import Header from "./components/Header";
 import Container from "@material-ui/core/Container";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import TextField from "@material-ui/core/TextField";
-import FormControl from "@material-ui/core/FormControl";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { getAllSymptoms, getConditionForSymptom } from "./services";
+import {
+  getAllSymptoms,
+  getConditionForSymptom,
+  getReportForCondition,
+  getConditionsForSymptom,
+} from "./services";
 
 function App() {
-  
-
   const [symptoms, setSymptoms] = useState([]);
 
   useEffect(() => {
-    getAllSymptoms().then(response => {
+    getAllSymptoms().then((response) => {
       if (response.ok) {
-        response.json().then(function(data) {
+        response.json().then(function (data) {
           if (data.symptoms) {
             console.log(data);
-            setSymptoms(data.symptoms)
+            setSymptoms(data.symptoms);
           }
         });
       }
-    })
-  }, [])
+    });
+  }, []);
 
   const defaultProps = {
     options: symptoms,
@@ -40,25 +42,46 @@ function App() {
   const [condition, setCondition] = useState({});
   const [enableDiagnoseOptionNo, setDiagnoseOptionNo] = useState(true);
   const [showRelevantConditions, setShowRelevantConditions] = useState(false);
+  const [relevantConditions, setRelevantConditions] = useState([]);
   const [enableDiagnoseOptionYes, setDiagnoseOptionYes] = useState(true);
+  const [conditionFrequency, setConditionFrequency] = useState(0);
+  const [additionalFrequency, setAdditionalFrequency] = useState({})
+
+  const handleRelevantConditionClick = (condition) => {
+    console.log(condition)
+    getReportForCondition({ condition: condition.id })
+    .then((response) => {
+      console.log(response);
+      if (response.ok) {
+        response.json().then(function (data) {
+          if (data.report) {
+            console.log(data.report);
+            setAdditionalFrequency(data.report);
+          }
+        });
+      }
+    });
+  }
 
   const submitSymptom = (e) => {
     e.preventDefault();
     setSymptomSubmitted(true);
-    getConditionForSymptom({symptom: selectedSymptom.id}).then(response => {
-      console.log(response)
-      if (response.ok) {
-        response.json().then(function(data) {
-          if (data.condition) {
-            console.log(data.condition)
-            setCondition(data.condition)
-          }
-        });
-      }
-    }).finally(() => {
-      setDiagnosisReceived(true);
-      setSymptomSubmitted(false);
-    });
+    getConditionForSymptom({ symptom: selectedSymptom.id })
+      .then((response) => {
+        console.log(response);
+        if (response.ok) {
+          response.json().then(function (data) {
+            if (data.condition) {
+              console.log(data.condition);
+              setCondition(data.condition);
+            }
+          });
+        }
+      })
+      .finally(() => {
+        setDiagnosisReceived(true);
+        setSymptomSubmitted(false);
+      });
   };
 
   const handleSymptomChange = (e, value) => {
@@ -69,22 +92,58 @@ function App() {
     setSymptomSubmitted(false);
     setDiagnosisReceived(false);
     setCondition({});
-    setDiagnoseOptionNo(true)
-    setDiagnoseOptionYes(true)
-    setShowConditionFrequenecy(false)
-    setShowRelevantConditions(false)
+    setDiagnoseOptionNo(true);
+    setDiagnoseOptionYes(true);
+    setShowConditionFrequenecy(false);
+    setShowRelevantConditions(false);
+  };
+
+  const handleConditionConfirm = () => {
+    getReportForCondition({ condition: selectedSymptom.id })
+      .then((response) => {
+        if (response.ok) {
+          response.json().then(function (data) {
+            console.log(data);
+            if (data.report) {
+              setConditionFrequency(data.report.frequency);
+            }
+          });
+        }
+      })
+      .finally(() => {
+        setShowConditionFrequenecy(true);
+        setDiagnoseOptionNo(false);
+      });
+  };
+
+  const handleConditionRejection = () => {
+    getConditionsForSymptom({ symptom: selectedSymptom.id })
+      .then((response) => {
+        if (response.ok) {
+          response.json().then((data) => {
+            console.log(data);
+            if (data.conditions) {
+              setRelevantConditions(data.conditions);
+            }
+          });
+        }
+      })
+      .finally(() => {
+        setDiagnoseOptionYes(false);
+        setShowRelevantConditions(true);
+      });
   };
   return (
     <div className="App">
       <Header></Header>
       <Container maxWidth="sm">
         <Typography>Hello! Lets help get you diagnosed</Typography>
-        <Typography>Start over by clicking the button below.</Typography>
+        <Typography>Start your diagnosis over by clicking the button below.</Typography>
         <Button variant="contained" onClick={resetForm}>
           Start Over
         </Button>
         <br />
-        <Typography>What are your symptoms?</Typography>
+        <Typography>What is your symptom?</Typography>
         <form onSubmit={submitSymptom}>
           <Autocomplete
             {...defaultProps}
@@ -119,34 +178,49 @@ function App() {
             <Typography>{condition.name}</Typography>
             <Button
               variant="contained"
-              onClick={() => {
-                setShowConditionFrequenecy(true)
-                setDiagnoseOptionNo(false)
-              }}
+              onClick={handleConditionConfirm}
               disabled={!enableDiagnoseOptionYes}
             >
               Yes
             </Button>
-            <Button variant="contained" disabled={!enableDiagnoseOptionNo} onClick={() => {
-              setDiagnoseOptionYes(false)
-              setShowRelevantConditions(true)
-            }}>No</Button>
+            <Button
+              variant="contained"
+              disabled={!enableDiagnoseOptionNo}
+              onClick={handleConditionRejection}
+            >
+              No
+            </Button>
           </div>
         )}
         {showConditionFrequency && (
           <div>
             <Typography>Thank you!</Typography>
-            <Typography>Here is are the number of similar diagnosis of this condition</Typography>
-            <div>6</div>
+            <Typography>
+              Here is are the number of similar diagnosis of this condition in the last month
+            </Typography>
+            <div>{conditionFrequency}</div>
           </div>
         )}
-        {
-          showRelevantConditions && (
+        {showRelevantConditions && (
+          <div>
+            Sorry we couldn't diagnose your condition. Please check out these
+            other conditions you might have to see more results.
             <div>
-              Sorry we couldn't diagnose your condition. Please check out these other conditions you might have.
+            {relevantConditions.map(condition => {
+              return <Button key={condition.id} variant="contained" onClick={() => handleRelevantConditionClick(condition)}>{condition.name}</Button>
+            })}
             </div>
-          )
-        }
+            {additionalFrequency.frequency && (
+              <div>
+              <Typography>Thank you!</Typography>
+              <Typography>
+                Here is are the number of similar diagnosis of this condition in the last month
+              </Typography>
+              <div>{additionalFrequency.frequency}</div>
+            </div>
+            )}
+          </div>
+        )}
       </Container>
     </div>
   );

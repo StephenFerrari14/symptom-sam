@@ -8,6 +8,7 @@ venv
 
 # testing
 /coverage
+pycache
 
 # production
 /build

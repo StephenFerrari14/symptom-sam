@@ -21,6 +21,15 @@ def get_condition_for_symptom(request):
   }
   return JsonResponse(data)
 
+def get_condition_by_id(request):
+  condition_id = request.GET['id']
+  print(symptom_id)
+  # get condition data
+  data = {
+    'condition': {'id': 1, 'name': 'rash'}
+  }
+  return JsonResponse(data)
+
 def get_report_for_condition(request):
   data = {
     'report': {
@@ -33,4 +42,9 @@ def get_top_conditions_for_symptom(request):
   data = {
     'conditions': [{'id': 1, 'name': 'rash'}, {'id': 2, 'name': 'rash 2'}]
   }
-  return JsonResponse({})
+  return JsonResponse(data)
+
+def save_condition_diagnosis(request):
+  print('saving')  
+  # request.POST['id]
+  return JsonResponse({"success": True})

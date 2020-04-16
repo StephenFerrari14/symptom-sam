@@ -16,12 +16,12 @@ class Report(models.Model):
 
 class UserCondition(models.Model):
   id = models.IntegerField(primary_key=True)
-  conditionId = models.IntegerField()
+  conditionId = models.IntegerField(default=0)
   insertedData = models.DateTimeField(auto_now=True)
 
 class ConditionSymptom(models.Model):
   class Meta:
     unique_together = (('symptomId', 'conditionId'),)
   symptomId = models.IntegerField(primary_key=True)
-  conditionId = models.IntegerField()
+  conditionId = models.IntegerField(default=0)
   relevanceScore = models.IntegerField(default=0)

@@ -18,7 +18,7 @@ import {
 function App() {
   const [symptoms, setSymptoms] = useState([]);
 
-  // Initialive dropdown
+  // Initialize dropdown
   useEffect(() => {
     getAllSymptoms().then((response) => {
       if (response.ok) {
@@ -51,8 +51,9 @@ function App() {
 
   const handleRelevantConditionClick = (condition) => {
     console.log(condition)
-    saveDiagnosis({conditionId: condition.id})
-    getReportForCondition({ condition: condition.id })
+    const conditionId = condition.id
+    saveDiagnosis({conditionId})
+    getReportForCondition({ condition: conditionId })
     .then((response) => {
       console.log(response);
       if (response.ok) {
@@ -104,7 +105,7 @@ function App() {
 
   const handleConditionConfirm = () => {
     saveDiagnosis({conditionId: condition.id})
-    getReportForCondition({ condition: selectedSymptom.id })
+    getReportForCondition({ condition: condition.id })
       .then((response) => {
         if (response.ok) {
           response.json().then(function (data) {
@@ -211,9 +212,9 @@ function App() {
             Sorry we couldn't diagnose your condition. Please check out these
             other conditions you might have to see more results.
             <div>
-            {relevantConditions.map(condition => {
+            {relevantConditions.length > 0 ? relevantConditions.map(condition => {
               return <Button key={condition.id} variant="contained" onClick={() => handleRelevantConditionClick(condition)}>{condition.name}</Button>
-            })}
+            }) : <div>Sorry we did not find any similar conditions.</div>}
             </div>
             {additionalFrequency.frequency && (
               <div>

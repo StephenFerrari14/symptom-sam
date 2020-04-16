@@ -48,20 +48,6 @@ function App() {
   const [conditionFrequency, setConditionFrequency] = useState(0);
   const [additionalFrequency, setAdditionalFrequency] = useState({});
 
-  const handleRelevantConditionClick = (condition) => {
-    const conditionId = condition.id;
-    saveDiagnosis({ conditionId });
-    getReportForCondition({ condition: conditionId }).then((response) => {
-      if (response.ok) {
-        response.json().then(function (data) {
-          if (data.report) {
-            setAdditionalFrequency(data.report);
-          }
-        });
-      }
-    });
-  };
-
   const submitSymptom = (e) => {
     e.preventDefault();
     setSymptomSubmitted(true);
@@ -81,9 +67,6 @@ function App() {
       });
   };
 
-  const handleSymptomChange = (e, value) => {
-    setSelectedSymptom(value);
-  };
   const resetForm = () => {
     setSelectedSymptom(null);
     setSymptomSubmitted(false);
@@ -94,6 +77,24 @@ function App() {
     setShowConditionFrequenecy(false);
     setShowRelevantConditions(false);
     setAdditionalFrequency({});
+  };
+
+  const handleRelevantConditionClick = (condition) => {
+    const conditionId = condition.id;
+    saveDiagnosis({ conditionId });
+    getReportForCondition({ condition: conditionId }).then((response) => {
+      if (response.ok) {
+        response.json().then(function (data) {
+          if (data.report) {
+            setAdditionalFrequency(data.report);
+          }
+        });
+      }
+    });
+  };
+
+  const handleSymptomChange = (e, value) => {
+    setSelectedSymptom(value);
   };
 
   const handleConditionConfirm = () => {
@@ -132,13 +133,13 @@ function App() {
   };
   return (
     <div className="App">
-      <Header></Header>
+      <Header />
       <Container maxWidth="sm">
-        <Typography>Hello! Lets help get you diagnosed</Typography>
+        <Typography style={{marginTop: "7px"}}>Hello! Lets help get you diagnosed</Typography>
         <Typography style={{marginTop: "7px"}}>
           Start your diagnosis over by clicking the button below.
         </Typography>
-        <Button variant="contained" onClick={resetForm}>
+        <Button variant="contained" size="small" onClick={resetForm}>
           Start Over
         </Button>
         <br />
@@ -146,7 +147,7 @@ function App() {
         <form onSubmit={submitSymptom}>
           <Autocomplete
             {...defaultProps}
-            id="clear-on-escape"
+            id="symptoms"
             clearOnEscape
             onChange={handleSymptomChange}
             value={selectedSymptom}
@@ -174,7 +175,7 @@ function App() {
         {diagnosisReceived && (
           <div style={{marginTop: "7px"}}>
             <Typography>Do you have the condition?</Typography>
-            <Typography>{condition.name}</Typography>
+            <Typography style={{fontWeight: "bold"}}>{condition.name}</Typography>
             <Button
               variant="contained"
               onClick={handleConditionConfirm}
@@ -196,7 +197,7 @@ function App() {
           <div style={{marginTop: "7px"}}>
             <Typography>Thank you!</Typography>
             <Typography>
-              Here is are the number of similar diagnosis of this condition in
+              Here is the number of similar diagnosis of this condition in
               the last month
             </Typography>
             <div style={{fontWeight: "bold"}}>{conditionFrequency}</div>
@@ -206,7 +207,7 @@ function App() {
           <div style={{ marginTop: "7px" }}>
             Sorry we couldn't diagnose your condition. Please check out these
             other conditions you might have to see more results.
-            <div>
+            <div style={{marginTop: "7px"}}>
               {relevantConditions.length > 0 ? (
                 relevantConditions.map((condition) => {
                   return (
@@ -223,11 +224,11 @@ function App() {
                 <div>Sorry we did not find any similar conditions.</div>
               )}
             </div>
-            {additionalFrequency && (
+            {additionalFrequency.frequency >= 0 && (
               <div style={{ marginTop: "7px" }}>
                 <Typography>Thank you!</Typography>
                 <Typography>
-                  Here is are the number of similar diagnosis of this condition
+                  Here is the number of similar diagnosis of this condition
                   in the last month
                 </Typography>
                 <div style={{fontWeight: "bold"}}>{additionalFrequency.frequency}</div>

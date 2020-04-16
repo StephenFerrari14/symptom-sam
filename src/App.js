@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
-import './App.css';
+import "./App.css";
 import Container from "@material-ui/core/Container";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import TextField from "@material-ui/core/TextField";
@@ -24,7 +24,6 @@ function App() {
       if (response.ok) {
         response.json().then(function (data) {
           if (data.symptoms) {
-            console.log(data);
             setSymptoms(data.symptoms);
           }
         });
@@ -47,36 +46,30 @@ function App() {
   const [relevantConditions, setRelevantConditions] = useState([]);
   const [enableDiagnoseOptionYes, setDiagnoseOptionYes] = useState(true);
   const [conditionFrequency, setConditionFrequency] = useState(0);
-  const [additionalFrequency, setAdditionalFrequency] = useState({})
+  const [additionalFrequency, setAdditionalFrequency] = useState({});
 
   const handleRelevantConditionClick = (condition) => {
-    console.log(condition)
-    const conditionId = condition.id
-    saveDiagnosis({conditionId})
-    getReportForCondition({ condition: conditionId })
-    .then((response) => {
-      console.log(response);
+    const conditionId = condition.id;
+    saveDiagnosis({ conditionId });
+    getReportForCondition({ condition: conditionId }).then((response) => {
       if (response.ok) {
         response.json().then(function (data) {
           if (data.report) {
-            console.log(data.report);
             setAdditionalFrequency(data.report);
           }
         });
       }
     });
-  }
+  };
 
   const submitSymptom = (e) => {
     e.preventDefault();
     setSymptomSubmitted(true);
     getConditionForSymptom({ symptom: selectedSymptom.id })
       .then((response) => {
-        console.log(response);
         if (response.ok) {
           response.json().then(function (data) {
             if (data.condition) {
-              console.log(data.condition);
               setCondition(data.condition);
             }
           });
@@ -100,16 +93,15 @@ function App() {
     setDiagnoseOptionYes(true);
     setShowConditionFrequenecy(false);
     setShowRelevantConditions(false);
-    setAdditionalFrequency({})
+    setAdditionalFrequency({});
   };
 
   const handleConditionConfirm = () => {
-    saveDiagnosis({conditionId: condition.id})
+    saveDiagnosis({ conditionId: condition.id });
     getReportForCondition({ condition: condition.id })
       .then((response) => {
         if (response.ok) {
           response.json().then(function (data) {
-            console.log(data);
             if (data.report) {
               setConditionFrequency(data.report.frequency);
             }
@@ -127,7 +119,6 @@ function App() {
       .then((response) => {
         if (response.ok) {
           response.json().then((data) => {
-            console.log(data);
             if (data.conditions) {
               setRelevantConditions(data.conditions);
             }
@@ -144,12 +135,14 @@ function App() {
       <Header></Header>
       <Container maxWidth="sm">
         <Typography>Hello! Lets help get you diagnosed</Typography>
-        <Typography>Start your diagnosis over by clicking the button below.</Typography>
+        <Typography style={{marginTop: "7px"}}>
+          Start your diagnosis over by clicking the button below.
+        </Typography>
         <Button variant="contained" onClick={resetForm}>
           Start Over
         </Button>
         <br />
-        <Typography>What is your symptom?</Typography>
+        <Typography style={{marginTop: "7px"}}>What is your symptom?</Typography>
         <form onSubmit={submitSymptom}>
           <Autocomplete
             {...defaultProps}
@@ -179,7 +172,7 @@ function App() {
           </Button>
         </form>
         {diagnosisReceived && (
-          <div>
+          <div style={{marginTop: "7px"}}>
             <Typography>Do you have the condition?</Typography>
             <Typography>{condition.name}</Typography>
             <Button
@@ -193,37 +186,52 @@ function App() {
               variant="contained"
               disabled={!enableDiagnoseOptionNo}
               onClick={handleConditionRejection}
+              style={{marginLeft: "7px"}}
             >
               No
             </Button>
           </div>
         )}
         {showConditionFrequency && (
-          <div>
+          <div style={{marginTop: "7px"}}>
             <Typography>Thank you!</Typography>
             <Typography>
-              Here is are the number of similar diagnosis of this condition in the last month
+              Here is are the number of similar diagnosis of this condition in
+              the last month
             </Typography>
-            <div>{conditionFrequency}</div>
+            <div style={{fontWeight: "bold"}}>{conditionFrequency}</div>
           </div>
         )}
         {showRelevantConditions && (
-          <div>
+          <div style={{ marginTop: "7px" }}>
             Sorry we couldn't diagnose your condition. Please check out these
             other conditions you might have to see more results.
             <div>
-            {relevantConditions.length > 0 ? relevantConditions.map(condition => {
-              return <Button key={condition.id} variant="contained" onClick={() => handleRelevantConditionClick(condition)}>{condition.name}</Button>
-            }) : <div>Sorry we did not find any similar conditions.</div>}
+              {relevantConditions.length > 0 ? (
+                relevantConditions.map((condition) => {
+                  return (
+                    <Button
+                      key={condition.id}
+                      variant="contained"
+                      onClick={() => handleRelevantConditionClick(condition)}
+                    >
+                      {condition.name}
+                    </Button>
+                  );
+                })
+              ) : (
+                <div>Sorry we did not find any similar conditions.</div>
+              )}
             </div>
             {additionalFrequency && (
-              <div>
-              <Typography>Thank you!</Typography>
-              <Typography>
-                Here is are the number of similar diagnosis of this condition in the last month
-              </Typography>
-              <div>{additionalFrequency.frequency}</div>
-            </div>
+              <div style={{ marginTop: "7px" }}>
+                <Typography>Thank you!</Typography>
+                <Typography>
+                  Here is are the number of similar diagnosis of this condition
+                  in the last month
+                </Typography>
+                <div style={{fontWeight: "bold"}}>{additionalFrequency.frequency}</div>
+              </div>
             )}
           </div>
         )}

@@ -5,6 +5,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.http import require_http_methods
 from diagnose.models import Symptom, Condition, Report, UserCondition, ConditionSymptom
 import json
+import csv
+from random import randint
 
 def index(request):
   return HttpResponse("Status up")
@@ -24,8 +26,6 @@ def get_all_symptoms(request):
 
 def get_condition_for_symptom(request):
   symptom_id = request.GET['symptom']
-  print(symptom_id)
-  # get condition data
   conditions = ConditionSymptom.objects.filter(symptomId=symptom_id)
 
   relevant_conditions = []
@@ -34,12 +34,9 @@ def get_condition_for_symptom(request):
       'condition_id': condition.conditionId,
       'score': condition.relevanceScore
     })
-  print(relevant_conditions)
   relevant_conditions.sort(key=lambda x: x['score'], reverse=True)
-  print(relevant_conditions)
 
   condition_id = relevant_conditions[0]['condition_id']
-  print(condition_id)
   condition = Condition.objects.get(id=condition_id)
 
   data = {
@@ -79,9 +76,7 @@ def get_top_conditions_for_symptom(request):
       'condition_id': condition.conditionId,
       'score': condition.relevanceScore
     })
-  print(relevant_conditions)
   relevant_conditions.sort(key=lambda x: x['score'], reverse=True)
-  print(relevant_conditions)
   # drop the first condition since that will be the one that will have been the condition in the first phase of the form
   relevant_conditions = relevant_conditions[1:limit+1]
 
@@ -102,18 +97,13 @@ def get_top_conditions_for_symptom(request):
 @require_http_methods(["POST"])
 def save_condition_diagnosis(request):
   payload = json.loads(request.body)
-  print(payload)
   condition_id = payload['conditionId']
-  print(condition_id)
   submittedCondition = UserCondition(conditionId=condition_id)
   submittedCondition.save()
   return JsonResponse({"success": True})
 
 # just doing this because other options I found were difficult
 def load_db(request):
-  import csv
-  from random import randint
-
   # drop everything
   Symptom.objects.all().delete()
   Condition.objects.all().delete()
@@ -121,6 +111,7 @@ def load_db(request):
   Report.objects.all().delete()
   UserCondition.objects.all().delete()
 
+  # insert all new data
   with open('symptoms.csv', newline='') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     for row in reader:
@@ -130,8 +121,6 @@ def load_db(request):
       s.save()
       s = Symptom.objects.get(name=row[0])
       symptom_id = s.id
-      print(row[0])
-      print(symptom_id)
       for r in row[1:]:
         try:
           c = Condition.objects.get(name=r)
@@ -141,7 +130,6 @@ def load_db(request):
           c = Condition.objects.get(name=r)
         condition_id = c.id
         score = randint(1,10)
-        print(condition_id, symptom_id, score)
         cs = ConditionSymptom(symptomId=symptom_id, conditionId=condition_id, relevanceScore=score)
         cs.save()
   return HttpResponse('db setup')

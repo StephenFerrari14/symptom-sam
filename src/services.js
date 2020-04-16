@@ -37,6 +37,6 @@ export function saveDiagnosis(params) {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: params
+    body: JSON.stringify(params)
   })
 }

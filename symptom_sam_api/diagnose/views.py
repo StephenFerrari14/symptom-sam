@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 
@@ -44,6 +45,8 @@ def get_top_conditions_for_symptom(request):
   }
   return JsonResponse(data)
 
+# update with csrf token and get rid of excemption
+@csrf_exempt
 def save_condition_diagnosis(request):
   print('saving')  
   # request.POST['id]

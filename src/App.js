@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "./App.css";
 import Header from "./components/Header";
+import './App.css';
 import Container from "@material-ui/core/Container";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import TextField from "@material-ui/core/TextField";
@@ -12,11 +12,13 @@ import {
   getConditionForSymptom,
   getReportForCondition,
   getConditionsForSymptom,
+  saveDiagnosis,
 } from "./services";
 
 function App() {
   const [symptoms, setSymptoms] = useState([]);
 
+  // Initialive dropdown
   useEffect(() => {
     getAllSymptoms().then((response) => {
       if (response.ok) {
@@ -49,6 +51,7 @@ function App() {
 
   const handleRelevantConditionClick = (condition) => {
     console.log(condition)
+    saveDiagnosis({conditionId: condition.id})
     getReportForCondition({ condition: condition.id })
     .then((response) => {
       console.log(response);
@@ -96,9 +99,11 @@ function App() {
     setDiagnoseOptionYes(true);
     setShowConditionFrequenecy(false);
     setShowRelevantConditions(false);
+    setAdditionalFrequency({})
   };
 
   const handleConditionConfirm = () => {
+    saveDiagnosis({conditionId: condition.id})
     getReportForCondition({ condition: selectedSymptom.id })
       .then((response) => {
         if (response.ok) {

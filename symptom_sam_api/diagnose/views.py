@@ -12,6 +12,11 @@ def index(request):
   return HttpResponse("Status up")
 
 def get_all_symptoms(request):
+  """Get all symptoms in a picklist format
+    @return {
+      symptoms: [Symptom]
+    }
+  """
   symptoms = []
   for symptom in Symptom.objects.all():
     symptoms.append({
@@ -25,6 +30,13 @@ def get_all_symptoms(request):
   return JsonResponse(data)
 
 def get_condition_for_symptom(request):
+  """ Get the highest relevance condition given a symptom id
+    @param symptom int
+
+    @return {
+      condition: Condition
+    }
+  """
   symptom_id = request.GET['symptom']
   conditions = ConditionSymptom.objects.filter(symptomId=symptom_id)
 
@@ -45,6 +57,13 @@ def get_condition_for_symptom(request):
   return JsonResponse(data)
 
 def get_condition_by_id(request):
+  """ Get a Condition given an id
+    @param id int
+
+    @return {
+      condition: Condition
+    }
+  """
   condition_id = request.GET['id']
   condition = Condition.objects.get(id=condition_id)
   data = {
@@ -53,6 +72,17 @@ def get_condition_by_id(request):
   return JsonResponse(data)
 
 def get_report_for_condition(request):
+  """ Get the report of a condition
+      A report is the amount of times a user has been diagnosed with the given condition
+
+    @param condition int
+
+    @return {
+      report: {
+        frequence: int
+      }
+    }
+  """
   condition_id = request.GET['condition']
   submittedConditions = UserCondition.objects.filter(conditionId=condition_id)
   data = {
@@ -63,6 +93,14 @@ def get_report_for_condition(request):
   return JsonResponse(data)
 
 def get_top_conditions_for_symptom(request):
+  """ Get the top relevant conditions for a symptom
+    @param symptom int
+    @param limit int optional
+
+    @return {
+      conditions: [{id, name}]
+    }
+  """
   symptom_id = request.GET['symptom']
   if 'limit' in request.GET:
     limit = request.GET['limit']
@@ -96,6 +134,13 @@ def get_top_conditions_for_symptom(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def save_condition_diagnosis(request):
+  """ Save a user diagnose for a condition
+    @param conditionId int
+
+    @return {
+      success: bool
+    }
+  """
   payload = json.loads(request.body)
   condition_id = payload['conditionId']
   submittedCondition = UserCondition(conditionId=condition_id)
@@ -104,6 +149,7 @@ def save_condition_diagnosis(request):
 
 # just doing this because other options I found were difficult
 def load_db(request):
+  """ Endpoint to reload the database from scratch, not to be used in production """
   # drop everything
   Symptom.objects.all().delete()
   Condition.objects.all().delete()

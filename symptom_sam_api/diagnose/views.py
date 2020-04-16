@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.http import require_http_methods
 from diagnose.models import Symptom, Condition, Report, UserCondition, ConditionSymptom
 import json
@@ -93,3 +94,39 @@ def save_condition_diagnosis(request):
   submittedCondition.save()
   return JsonResponse({"success": True})
 
+# just doing this because other options I found were difficult
+def load_db(request):
+  import csv
+  from random import randint
+
+  # drop everything
+  Symptom.objects.all().delete()
+  Condition.objects.all().delete()
+  ConditionSymptom.objects.all().delete()
+  Report.objects.all().delete()
+  UserCondition.objects.all().delete()
+
+  with open('symptoms.csv', newline='') as csvfile:
+    reader = csv.reader(csvfile, delimiter=',')
+    for row in reader:
+      # first record is symptom
+      # the rest are conditions
+      s = Symptom(name=row[0])
+      s.save()
+      s = Symptom.objects.get(name=row[0])
+      symptom_id = s.id
+      print(row[0])
+      print(symptom_id)
+      for r in row[1:]:
+        try:
+          c = Condition.objects.get(name=r)
+        except ObjectDoesNotExist as e:
+          c = Condition(name=r)
+          c.save()
+          c = Condition.objects.get(name=r)
+        condition_id = c.id
+        score = randint(1,10)
+        print(condition_id, symptom_id, score)
+        cs = ConditionSymptom(symptomId=symptom_id, conditionId=condition_id, relevanceScore=score)
+        cs.save()
+  return HttpResponse('db setup')

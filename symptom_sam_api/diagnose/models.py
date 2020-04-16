@@ -20,8 +20,6 @@ class UserCondition(models.Model):
   insertedData = models.DateTimeField(auto_now=True)
 
 class ConditionSymptom(models.Model):
-  class Meta:
-    unique_together = (('symptomId', 'conditionId'),)
-  symptomId = models.IntegerField(primary_key=True)
+  symptomId = models.IntegerField(default=0)
   conditionId = models.IntegerField(default=0)
   relevanceScore = models.IntegerField(default=0)

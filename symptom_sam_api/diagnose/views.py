@@ -26,8 +26,22 @@ def get_condition_for_symptom(request):
   symptom_id = request.GET['symptom']
   print(symptom_id)
   # get condition data
-  join = ConditionSymptom.objects.get(symptomId=symptom_id)
-  condition = Condition.objects.get(id=join.conditionId)
+  conditions = ConditionSymptom.objects.filter(symptomId=symptom_id)
+
+  relevant_conditions = []
+  for condition in conditions:
+    relevant_conditions.append({
+      'condition_id': condition.conditionId,
+      'score': condition.relevanceScore
+    })
+  print(relevant_conditions)
+  relevant_conditions.sort(key=lambda x: x['score'], reverse=True)
+  print(relevant_conditions)
+
+  condition_id = relevant_conditions[0]['condition_id']
+  print(condition_id)
+  condition = Condition.objects.get(id=condition_id)
+
   data = {
     'condition': {'id': condition.id, 'name': condition.name}
   }
@@ -69,8 +83,9 @@ def get_top_conditions_for_symptom(request):
   relevant_conditions.sort(key=lambda x: x['score'], reverse=True)
   print(relevant_conditions)
   # drop the first condition since that will be the one that will have been the condition in the first phase of the form
-  top_condition_ids = relevant_conditions[1:limit+1]
-  top_conditions = Condition.objects.filter(id__in=top_condition_ids)
+  relevant_conditions = relevant_conditions[1:limit+1]
+
+  top_conditions = Condition.objects.filter(id__in=[relevent_condition['condition_id'] for relevent_condition in relevant_conditions])
   results = []
   for condition in top_conditions:
     results.append({

@@ -216,7 +216,7 @@ function App() {
               return <Button key={condition.id} variant="contained" onClick={() => handleRelevantConditionClick(condition)}>{condition.name}</Button>
             }) : <div>Sorry we did not find any similar conditions.</div>}
             </div>
-            {additionalFrequency.frequency && (
+            {additionalFrequency && (
               <div>
               <Typography>Thank you!</Typography>
               <Typography>
